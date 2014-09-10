@@ -1,2 +1,11 @@
 
 .idea/*
+*.ico
+
+client.c
+
+*.html
+
+*.jpg
+
+*.log
