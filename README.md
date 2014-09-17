@@ -20,3 +20,9 @@ file to the brower and exit
 
 read the whole http request sometime is not practical.
 
+
+REF:
+http://www.ibm.com/developerworks/systems/library/es-nweb/
+http://beej.us/guide/bgnet/
+http://csapp.cs.cmu.edu/
+
