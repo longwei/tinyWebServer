@@ -13,7 +13,7 @@
 #include <netdb.h>
 #include <sys/wait.h>
 
-#define VERSION 23
+#define VERSION 777
 #define BUFSIZE 8096
 #define ERROR      42
 #define LOG        44
@@ -21,6 +21,17 @@
 #define NOTFOUND  404
 #define PORT "8081"  // the port users will be connecting to
 #define BACKLOG 10   // how many pending connections queue will hold
+
+static const char FORBIDDEN_RESPOND[] =
+"HTTP/1.1 403 Forbidden\nContent-Length: 185\nConnection: close\nContent-Type: text/html\n\n"
+"<html><head>\n<title>403 Forbidden</title>\n</head><body>\n<h1>Forbidden</h1>\n"
+"The requested URL, file type or operation is not allowed on this simple static file webserver.\n</body></html>\n";
+
+static const char NOT_FOUND_RESPOND[] =
+"HTTP/1.1 404 Not Found\nContent-Length: 136\nConnection: close\nContent-Type: text/html\n\n"
+"<html><head>\n<title>404 Not Found</title>\n</head><body>\n<h1>Not Found</h1>\n"
+"The requested URL was not found on this server.\n</body></html>\n";
+
 
 struct {
     char *ext;
@@ -66,11 +77,11 @@ void logger(int type, char *s1, char *s2, int socket_fd) {
             snprintf(logbuffer, BUFSIZE, "%sERROR: %s:%s Errno=%d exiting pid=%d", asctime(timeinfo), s1, s2, errno, getpid());
             break;
         case FORBIDDEN:
-            write(socket_fd, "HTTP/1.1 403 Forbidden\nContent-Length: 185\nConnection: close\nContent-Type: text/html\n\n<html><head>\n<title>403 Forbidden</title>\n</head><body>\n<h1>Forbidden</h1>\nThe requested URL, file type or operation is not allowed on this simple static file webserver.\n</body></html>\n", 271);
+            send(socket_fd, FORBIDDEN_RESPOND, strlen(FORBIDDEN_RESPOND),0);
             snprintf(logbuffer, BUFSIZE, "%sFORBIDDEN: %s:%s", asctime(timeinfo), s1, s2);
             break;
         case NOTFOUND:
-            write(socket_fd, "HTTP/1.1 404 Not Found\nContent-Length: 136\nConnection: close\nContent-Type: text/html\n\n<html><head>\n<title>404 Not Found</title>\n</head><body>\n<h1>Not Found</h1>\nThe requested URL was not found on this server.\n</body></html>\n", 224);
+            send(socket_fd, NOT_FOUND_RESPOND, strlen(NOT_FOUND_RESPOND),0);
             snprintf(logbuffer, BUFSIZE, "%sNOT FOUND: %s:%s", asctime(timeinfo), s1, s2);
             break;
         case LOG:
@@ -80,7 +91,6 @@ void logger(int type, char *s1, char *s2, int socket_fd) {
 
     if ((log_fd = open("tiny.log", O_CREAT | O_WRONLY | O_APPEND, 0644)) >= 0) {
         write(log_fd, logbuffer, strlen(logbuffer));
-        write(log_fd, "\n", 1);
         close(log_fd);
     }
     if (type == ERROR || type == NOTFOUND || type == FORBIDDEN) exit(3);
@@ -94,7 +104,7 @@ void web(int fd) {
     static char buffer[BUFSIZE + 1]; /* static so zero filled */
 
     //just assume request could be read in one read
-    ret = read(fd, buffer, BUFSIZE);
+    ret = recv(fd, buffer, BUFSIZE, 0);
     if (ret == 0 || ret == -1) {    /* read failure stop now */
         logger(FORBIDDEN, "failed to read browser request", "", fd);
     }
@@ -109,8 +119,8 @@ void web(int fd) {
     if (strncmp(buffer, "GET ", 4) && strncmp(buffer, "get ", 4)) {
         logger(FORBIDDEN, "Only simple GET operation supported", buffer, fd);
     }
-    for (i = 4; i < BUFSIZE; i++) { /* null terminate after the second space to ignore extra stuff */
-        if (buffer[i] == ' ') { /* string is "GET URL " +lots of other stuff */
+    for (i = 4; i < BUFSIZE; i++) { // null terminate after the second space to ignore extra stuff
+        if (buffer[i] == ' ') { // string is "GET URL " +lots of other stuff
             buffer[i] = 0;
             break;
         }
@@ -149,11 +159,11 @@ void web(int fd) {
     snprintf(buffer, BUFSIZE, "HTTP/1.1 200 OK\nServer: tiny/%d.0\nContent-Length: %ld\nConnection: close\nContent-Type: %s\n\n", VERSION, len, fstr); /* Header + a blank line */
     logger(LOG, "Header", buffer, fd);
     //sending header
-    write(fd, buffer, strlen(buffer));
+    send(fd, buffer, strlen(buffer),0);
 
     //send content in 8KB block - last block may be smaller
     while ((ret = read(file_fd, buffer, BUFSIZE)) > 0) {
-        write(fd, buffer, ret);
+        send(fd, buffer, ret,0);
     }
     //some os may not wait for socket to finished sending the data but drop connection
     sleep(1);
