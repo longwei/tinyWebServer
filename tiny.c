@@ -32,6 +32,9 @@ static const char NOT_FOUND_RESPOND[] =
 "<html><head>\n<title>404 Not Found</title>\n</head><body>\n<h1>Not Found</h1>\n"
 "The requested URL was not found on this server.\n</body></html>\n";
 
+static const char HEADER[] =
+"HTTP/1.1 200 OK\nServer: tiny/%d.0\nContent-Length: %ld\nConnection: close\nContent-Type: %s\n\n";
+
 
 struct {
     char *ext;
@@ -156,7 +159,7 @@ void web(int fd) {
     len = (long) lseek(file_fd, (off_t) 0, SEEK_END);
     //lseek back to the file start ready for reading
     lseek(file_fd, (off_t) 0, SEEK_SET);
-    snprintf(buffer, BUFSIZE, "HTTP/1.1 200 OK\nServer: tiny/%d.0\nContent-Length: %ld\nConnection: close\nContent-Type: %s\n\n", VERSION, len, fstr); /* Header + a blank line */
+    snprintf(buffer, BUFSIZE, HEADER, VERSION, len, fstr); /* Header + a blank line */
     logger(LOG, "Header", buffer, fd);
     //sending header
     send(fd, buffer, strlen(buffer),0);
@@ -182,11 +185,11 @@ int main(int argc, char **argv) {
     int rv;
     int pid;
     // parent returns OK to shell
-    // if (fork() != 0) {
-    //     return 0;
-    // }
-    //break from user's group so log off have no impact
-    // setpgrp();
+    if (fork() != 0) {
+        return 0;
+    }
+    // break from user's group so log off have no impact
+    setpgrp();
 
     memset(&hints, 0, sizeof hints);
     hints.ai_family = AF_UNSPEC;
@@ -205,19 +208,16 @@ int main(int argc, char **argv) {
             perror("server: socket");
             continue;
         }
-
         if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &yes,
                 sizeof(int)) == -1) {
             perror("setsockopt");
             exit(1);
         }
-
         if (bind(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
             close(sockfd);
             perror("server: bind");
             continue;
         }
-
         break;
     }
 

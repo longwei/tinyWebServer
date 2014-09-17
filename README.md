@@ -1,5 +1,4 @@
-How to build a simple Web server using Native Threads aproach
-
+How to build a simple Web server using Native Threads aproach?
 
 each connection is handled by a single process or native thread.
 When using an thead pool, multiple process are created in advance
@@ -18,8 +17,8 @@ web: called in child process, one process for each web request. transmit the req
 file to the brower and exit
 
 
-read the whole http request sometime is not practical.
-
+usage:
+shoot it, and it will host a simple static webserver on current directory
 
 REF:
 http://www.ibm.com/developerworks/systems/library/es-nweb/
