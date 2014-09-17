@@ -16,6 +16,7 @@ and start child processes to handle them.
 web: called in child process, one process for each web request. transmit the requested
 file to the brower and exit
 
+main keep the listen fd and child process keep the connection fd.
 
 usage:
 shoot it, and it will host a simple static webserver on current directory
