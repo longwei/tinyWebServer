@@ -45,7 +45,10 @@ key: value pair
 ....
 ```
 
-CGI
+TODO
+===
+
+add CGI, make it dynamic
 in root/cgi-bin contain the file,
 
 
