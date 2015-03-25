@@ -45,14 +45,14 @@ key: value pair
 ....
 ```
 
+
 CGI
 in root/cgi-bin contain the files, just pass query string in environment
 ====
 mult.cgi?m=4&n=9
 
 
-
-threadpool?
+threadpool
 ===
 
 
@@ -60,6 +60,7 @@ basic routing
 ===
 
 REF:
+===
 http://www.ibm.com/developerworks/systems/library/es-nweb/
 http://beej.us/guide/bgnet/
 http://csapp.cs.cmu.edu/
