@@ -11,3 +11,7 @@ client.c
 *.log
 
 tiny
+
+*.out
+
+*.jpeg
