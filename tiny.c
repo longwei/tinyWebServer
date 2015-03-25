@@ -40,15 +40,8 @@ struct {
     char *ext;
     char *filetype;
 } extensions[] = {
-        {"gif", "image/gif"},
-        {"jpg", "image/jpg"},
         {"jpeg", "image/jpeg"},
         {"png", "image/png"},
-        {"ico", "image/ico"},
-        {"zip", "image/zip"},
-        {"gz", "image/gz"},
-        {"tar", "image/tar"},
-        {"htm", "text/html"},
         {"html", "text/html"},
         {0, 0}};
 
@@ -184,12 +177,13 @@ int main(int argc, char **argv) {
     char s[INET6_ADDRSTRLEN];
     int rv;
     int pid;
-    // parent returns OK to shell
-    if (fork() != 0) {
-        return 0;
-    }
-    // break from user's group so log off have no impact
-    setpgrp();
+
+//    if (fork() != 0) {
+//        return 0; // parent returns OK to shell
+//        printf("detaching from console");
+//    }
+//    setpgrp(); // break from user's group so log off have no impact
+
 
     memset(&hints, 0, sizeof hints);
     hints.ai_family = AF_UNSPEC;
@@ -241,7 +235,7 @@ int main(int argc, char **argv) {
         exit(1);
     }
 
-    printf("all good\nserver: waiting for connections...\ndetaching from console\n");
+    printf("all good\nserver: waiting for connections...\n");
 
     while (1) {  // main accept() loop
         sin_size = sizeof their_addr;
